@@ -1,86 +1,81 @@
 #include <Servo.h>
 
-class ServoController
+class RobotArmController
 {
 private:
-    Servo servo;
-    int   offset;
-    int   angle;
-    int   max_angle;
-    int   min_angle;
+    Servo servo1;
+    Servo servo2;
 
 public:
-    ServoController(int offset,
-                    int angle,
-                    int max_angle,
-                    int min_angle) {
-        this->offset    = offset;
-        this->angle     = angle;
-        this->max_angle = max_angle;
-        this->min_angle = min_angle;
+    void attach(int pin1, int pin2) {
+        servo1.attach(pin1);
+        servo2.attach(pin2);
     }
 
-    void attach(int pin) {
-        servo.attach(pin);
-    }
-
-    void next() {
-        angle += offset;
-        if (angle > max_angle) {
-            angle  = max_angle;
-            offset = -offset;
-        }
-        if (angle < min_angle) {
-            angle  = min_angle;
-            offset = -offset;
-        }
-    }
-
-    void set(int angle) {
-        servo.write(angle);
-    }
-
-    void actuate() {
-        servo.write(angle);
+    void set(int angle1, int angle2) {
+        servo1.write(angle1);
+        servo2.write(angle2);
     }
 };
 
-#define SERVO1_OFFSET        1
-#define SERVO1_INITIAL_ANGLE 90
-#define SERVO1_MIN_ANGLE     80
-#define SERVO1_MAX_ANGLE     90
-#define SERVO2_OFFSET        1
-#define SERVO2_INITIAL_ANGLE 90
-#define SERVO2_MIN_ANGLE     80
-#define SERVO2_MAX_ANGLE     90
+class Position
+{
+public:
+    int angle1;
+    int angle2;
 
-ServoController servo1(SERVO1_OFFSET,
-                       SERVO1_INITIAL_ANGLE,
-                       SERVO1_MAX_ANGLE,
-                       SERVO1_MIN_ANGLE);
-ServoController servo2(SERVO2_OFFSET,
-                       SERVO2_INITIAL_ANGLE,
-                       SERVO2_MAX_ANGLE,
-                       SERVO2_MIN_ANGLE);
+    Position(int angle1, int angle2) {
+        this->angle1 = angle1;
+        this->angle2 = angle2;
+    }
+};
 
+RobotArmController arm;
 
 void setup()
 {
     Serial.begin(9600);
-    servo1.attach(4);
-    servo1.actuate();
-
-    servo2.attach(5);
-    servo2.actuate();
-
+    arm.attach(4, 5);
 }
 
 void loop()
 {
-    servo1.actuate();
-    servo1.next();
-
-    servo2.next();
-    servo2.actuate();
-    delay(1000);
+    Position pos[] = {
+        {90,48},
+        {90,47},
+        {90,46},
+        {90,45},
+        {90,44},
+        {90,43},
+        {90,42},
+        {90,41},
+        {90,40},
+        {90,41},
+        {90,42},
+        {90,43},
+        {90,44},
+        {90,45},
+        {90,46},
+        {90,47},
+        {90,48},
+        {90,49},
+        {89,49},
+        {88,48},
+        {87,47},
+        {85,47},
+        {83,47},
+        {81,47},
+        {80,47},
+        {81,47},
+        {83,47},
+        {85,47},
+        {87,47},
+        {88,48},
+        {89,49},
+    };
+    int size = sizeof(pos) / sizeof(pos[0]);
+    for (int i=0; i<size; i++) {
+        arm.set(pos[i].angle1, pos[i].angle2);
+        delay(250);
+    }
 }
