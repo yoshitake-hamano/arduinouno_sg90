@@ -40,42 +40,33 @@ void setup()
 
 void loop()
 {
+#if 0
+    int x = 0;
+    while (x == 0) {
+        x = Serial.parseInt();
+    }
+    int y = 0;
+    while (y == 0) {
+        y = Serial.parseInt();
+    }
+    Serial.print(x);
+    Serial.print(" ");
+    Serial.println(y);
+    arm.set(x, y);
+    delay(250);
+#else
     Position pos[] = {
-        {90,48},
-        {90,47},
-        {90,46},
-        {90,45},
-        {90,44},
-        {90,43},
-        {90,42},
-        {90,41},
-        {90,40},
-        {90,41},
-        {90,42},
-        {90,43},
-        {90,44},
-        {90,45},
-        {90,46},
-        {90,47},
-        {90,48},
-        {90,49},
-        {89,49},
-        {88,48},
-        {87,47},
-        {85,47},
-        {83,47},
-        {81,47},
-        {80,47},
-        {81,47},
-        {83,47},
-        {85,47},
-        {87,47},
-        {88,48},
-        {89,49},
-    };
+        {90,90},
+        {60,120},
+        {90,90},
+        {60,90},
+        {10,90},
+        {60,90},
+        };
     int size = sizeof(pos) / sizeof(pos[0]);
     for (int i=0; i<size; i++) {
         arm.set(pos[i].angle1, pos[i].angle2);
-        delay(250);
+        delay(1000);
     }
+#endif
 }
