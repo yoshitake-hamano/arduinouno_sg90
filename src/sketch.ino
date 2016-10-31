@@ -2,6 +2,7 @@
 #include <IRremote.h>
 
 const int IRRECV_PIN   = 11;
+const int MOTOR_PIN    = 9;
 const int STEERING_PIN = 4;
 
 const unsigned long IRRECV_LEFT    = 0x41B619E6;
@@ -51,7 +52,29 @@ public:
     }
 };
 
+class MotorController
+{
+private:
+    int pin;
+
+public:
+    void attach(int pin) {
+        this->pin = pin;
+        pinMode(pin, OUTPUT);
+        digitalWrite(pin, LOW);
+    }
+
+    void up() {
+        digitalWrite(pin, HIGH);
+    }
+
+    void down() {
+        digitalWrite(pin, LOW);
+    }
+};
+
 SteeringController steering;
+MotorController motor;
 IRrecv irrecv(IRRECV_PIN);
 
 void dump(decode_results* results)
@@ -78,6 +101,7 @@ void setup()
     Serial.begin(9600);
     steering.attach(STEERING_PIN);
     irrecv.enableIRIn();
+    motor.attach(MOTOR_PIN);
 }
 
 void loop()
@@ -92,6 +116,8 @@ void loop()
     switch (results.value) {
     case IRRECV_LEFT:  steering.left();  break;
     case IRRECV_RIGHT: steering.right(); break;
+    case IRRECV_UP:    motor.up();       break;
+    case IRRECV_DOWN:  motor.down();     break;
     }
     delay(50);
 }
