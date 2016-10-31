@@ -1,71 +1,62 @@
 #include <Servo.h>
 
-class RobotArmController
+class SteeringController
 {
 private:
-    Servo servo1;
-    Servo servo2;
+    Servo servo;
 
 public:
-    void attach(int pin1, int pin2) {
-        servo1.attach(pin1);
-        servo2.attach(pin2);
+    void attach(int pin) {
+        servo.attach(pin);
     }
 
-    void set(int angle1, int angle2) {
-        servo1.write(angle1);
-        servo2.write(angle2);
+    void set(int angle) {
+        servo.write(angle);
     }
 };
 
 class Position
 {
 public:
-    int angle1;
-    int angle2;
+    int angle;
 
-    Position(int angle1, int angle2) {
-        this->angle1 = angle1;
-        this->angle2 = angle2;
+    Position(int angle) {
+        this->angle = angle;
     }
 };
 
-RobotArmController arm;
+SteeringController steering;
 
 void setup()
 {
     Serial.begin(9600);
-    arm.attach(4, 5);
+    steering.attach(4);
 }
 
 void loop()
 {
-#if 0
+#if 1
     int x = 0;
     while (x == 0) {
         x = Serial.parseInt();
     }
-    int y = 0;
-    while (y == 0) {
-        y = Serial.parseInt();
-    }
-    Serial.print(x);
-    Serial.print(" ");
-    Serial.println(y);
-    arm.set(x, y);
+    Serial.println(x);
+    steering.set(x);
     delay(250);
 #else
     Position pos[] = {
-        {90,90},
-        {60,120},
-        {90,90},
-        {60,90},
-        {10,90},
-        {60,90},
+        {70},
+        {75},
+        {80}, // center
+        {85},
+        {90},
+        {85},
+        {80}, // center
+        {75},
         };
     int size = sizeof(pos) / sizeof(pos[0]);
     for (int i=0; i<size; i++) {
-        arm.set(pos[i].angle1, pos[i].angle2);
+        steering.set(pos[i].angle);
         delay(1000);
     }
 #endif
