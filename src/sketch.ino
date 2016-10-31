@@ -1,4 +1,5 @@
 #include <Servo.h>
+#include <IRremote.h>
 
 class SteeringController
 {
