@@ -1,9 +1,9 @@
 #include <Servo.h>
 #include <IRremote.h>
 
-const int IRRECV_PIN   = 11;
-const int MOTOR_PIN    = 9;
-const int STEERING_PIN = 4;
+const int IRRECV_PIN   = 11; // MOSI(pin#17)
+const int MOTOR_PIN    = 9;  // IO9 (pin#15)
+const int STEERING_PIN = 4;  // IO4 (pin#6)
 
 const unsigned long IRRECV_LEFT    = 0x41B619E6;
 const unsigned long IRRECV_RIGHT   = 0x41B66996;
@@ -99,6 +99,7 @@ void dump(decode_results* results)
 void setup()
 {
     Serial.begin(9600);
+    Serial.println("Starting...");
     steering.attach(STEERING_PIN);
     irrecv.enableIRIn();
     motor.attach(MOTOR_PIN);
