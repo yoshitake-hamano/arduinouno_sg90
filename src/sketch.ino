@@ -1,124 +1,68 @@
 #include <Servo.h>
 #include <IRremote.h>
 
-const int IRRECV_PIN   = 11; // MOSI(pin#17)
-const int MOTOR_PIN    = 9;  // IO9 (pin#15)
-const int STEERING_PIN = 4;  // IO4 (pin#6)
+const int IRSEND_PIN   = 13; // SCK(pin#19)
+const int RECV_PIN     = 6;
 
-const unsigned long IRRECV_LEFT    = 0x41B619E6;
-const unsigned long IRRECV_RIGHT   = 0x41B66996;
-const unsigned long IRRECV_UP      = 0x41B6F906;
-const unsigned long IRRECV_DOWN    = 0x41B67986;
-const unsigned long IRRECV_ENTER   = 0x41B659A6;
-const unsigned long IRRECV_SLEEP30 = 0x41B6A15E;
-const unsigned long IRRECV_SLEEP60 = 0x41B6619E;
+IRsend irsend;
+IRrecv irrecv(RECV_PIN);
 
-class SteeringController
-{
-private:
-    const int STEERING_MIN    = 58;
-    const int STEERING_INIT   = 78;
-    const int STEERING_MAX    = 98;
-    const int STEERING_OFFSET = 10;
+const int REGZA_SIZE = 32;
 
-    Servo servo;
-    int   index;
-
-public:
-    void attach(int pin) {
-        index = 0;
-        servo.attach(pin);
-        servo.write(STEERING_INIT);
-    }
-
-    void right() {
-        int nextIndex = index + 1;
-        int nextAngle = nextIndex * STEERING_OFFSET + STEERING_INIT;
-        if (nextAngle > STEERING_MAX) {
-            return;
-        }
-        index = nextIndex;
-        servo.write(nextAngle);
-    }
-
-    void left() {
-        int nextIndex = index - 1;
-        int nextAngle = nextIndex * STEERING_OFFSET + STEERING_INIT;
-        if (nextAngle < STEERING_MIN) {
-            return;
-        }
-        index = nextIndex;
-        servo.write(nextAngle);
-    }
+enum {
+    REGZA_ENTER,
+    REGZA_UP,
+    REGZA_DOWN,
+    REGZA_LEFT,
+    REGZA_RIGHT,
+    REGZA_BLUE,
+    REGZA_RED,
+    REGZA_GREEN,
+    REGZA_YELLOW,
 };
 
-class MotorController
-{
-private:
-    int pin;
-
-public:
-    void attach(int pin) {
-        this->pin = pin;
-        pinMode(pin, OUTPUT);
-        digitalWrite(pin, LOW);
-    }
-
-    void up() {
-        digitalWrite(pin, HIGH);
-    }
-
-    void down() {
-        digitalWrite(pin, LOW);
-    }
+const uint32_t REGZA_LED_DATA[] = {
+    0x02FDBC43,
+    0x02FD7C83,
+    0x02FDFC03,
+    0x02FDFA05,
+    0x02FDDA25,
+    0x02FDCE31,
+    0x02FD2ED1,
+    0x02FDAE51,
+    0x02FD6E91,
 };
 
-SteeringController steering;
-MotorController motor;
-IRrecv irrecv(IRRECV_PIN);
-
-void dump(decode_results* results)
-{
-    int count = results->rawlen;
-    if (results->decode_type == UNKNOWN) {
-        Serial.print("Unknown encodint: ");
-    } else if (results->decode_type == NEC) {
-        Serial.print("Decorded NEC: ");
-    } else {
-        Serial.print("Unknown encodint: ");
-    }
-    Serial.print(results->value, HEX);
-    Serial.print(" (");
-    Serial.print(results->bits, DEC);
-    Serial.print("bits)");
-    Serial.print("Raw (");
-    Serial.print(count, DEC);
-    Serial.println(")");
-}
 
 void setup()
 {
     Serial.begin(9600);
     Serial.println("Starting...");
-    steering.attach(STEERING_PIN);
     irrecv.enableIRIn();
-    motor.attach(MOTOR_PIN);
 }
 
 void loop()
 {
+#if 0
     decode_results results;
-    if (!irrecv.decode(&results)) {
-        return;
+    if (irrecv.decode(&results)) {
+        if (results.decode_type == NEC) {
+            Serial.print("NEC: ");
+        } else if (results.decode_type == SONY) {
+            Serial.print("SONY: ");
+        } else if (results.decode_type == RC5) {
+            Serial.print("RC5: ");
+        } else if (results.decode_type == RC6) {
+            Serial.print("RC6: ");
+        } else if (results.decode_type == UNKNOWN) {
+            Serial.print("UNKNOWN: ");
+        }
+        Serial.println(results.value, HEX);
+        irrecv.resume(); // Receive the next value
     }
+#endif
 
-    dump(&results);
-    irrecv.resume();
-    switch (results.value) {
-    case IRRECV_LEFT:  steering.left();  break;
-    case IRRECV_RIGHT: steering.right(); break;
-    case IRRECV_UP:    motor.up();       break;
-    case IRRECV_DOWN:  motor.down();     break;
-    }
-    delay(50);
+    Serial.println("Send");
+    irsend.sendNEC(REGZA_LED_DATA[REGZA_ENTER], REGZA_SIZE);
+    delay(random(1000, 10000));
 }
