@@ -16,10 +16,10 @@ const unsigned long IRRECV_SLEEP60 = 0x41B6619E;
 class SteeringController
 {
 private:
-    const int STEERING_MIN    = 66;
+    const int STEERING_MIN    = 58;
     const int STEERING_INIT   = 78;
-    const int STEERING_MAX    = 90;
-    const int STEERING_OFFSET = 4;
+    const int STEERING_MAX    = 98;
+    const int STEERING_OFFSET = 10;
 
     Servo servo;
     int   index;
