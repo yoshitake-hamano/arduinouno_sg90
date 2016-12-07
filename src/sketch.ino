@@ -2,7 +2,7 @@
 #include <IRremote.h>
 
 const int IRRECV_PIN   = 11; // MOSI(pin#17)
-const int STEERING_PIN = 10;  // IO4 (pin#6)
+const int STEERING_PIN = 4;  // IO4 (pin#6)
 
 const unsigned long IRRECV_LEFT    = 0x41B619E6;
 const unsigned long IRRECV_RIGHT   = 0x41B66996;
@@ -21,13 +21,16 @@ private:
     #define STEERING_OFFSET 10
 
     Servo servo;
+    int   pin;
     int   angle;
 
 public:
-    void attach(int pin) {
+    SteeringController() : pin(STEERING_PIN), angle(STEERING_INIT) {
+    }
+
+    void initialize() {
         angle = STEERING_INIT;
-        servo.attach(pin);
-        servo.write(STEERING_INIT);
+        set(angle, false);
     }
 
     void left(int offset = STEERING_OFFSET) {
@@ -35,9 +38,8 @@ public:
         if (nextAngle > STEERING_MAX) {
             nextAngle = STEERING_MAX;
         }
-        servo.write(nextAngle);
+        set(nextAngle);
         angle = nextAngle;
-        delay(10);
     }
 
     void right(int offset = STEERING_OFFSET) {
@@ -45,20 +47,24 @@ public:
         if (nextAngle < STEERING_MIN) {
             nextAngle = STEERING_MIN;
         }
-        servo.write(nextAngle);
+        set(nextAngle);
         angle = nextAngle;
     }
 
-    void set(int angle) {
-        int nextAngle = angle;
-        if (nextAngle > STEERING_MAX) {
+private:
+    void set(int angle, bool enableCache=true) {
+        if (enableCache && angle == this->angle) {
             return;
         }
-        if (nextAngle < STEERING_MIN) {
-            return;
-        }
-        servo.write(nextAngle);
-        angle = nextAngle;
+
+        // Incase of using IRrecv.
+        //
+        // Attach and detach everytime.
+        // If do not, the servo vibrate slightly.
+        servo.attach(pin);
+        servo.write(angle);
+        delay(100);
+        servo.detach();
     }
 };
 
@@ -87,16 +93,15 @@ void dump(decode_results* results)
 void setup()
 {
     Serial.begin(9600);
-    steering.attach(STEERING_PIN);
     irrecv.enableIRIn();
     Serial.println("Booted.");
+    steering.initialize();
 }
 
 void loop()
 {
     decode_results results;
     if (!irrecv.decode(&results)) {
-        delay(100);
         return;
     }
     irrecv.resume();
@@ -108,5 +113,4 @@ void loop()
     case IRRECV_DOWN:  steering.left(30);  break;
     case IRRECV_UP:    steering.right(30); break;
     }
-    delay(100);
 }
