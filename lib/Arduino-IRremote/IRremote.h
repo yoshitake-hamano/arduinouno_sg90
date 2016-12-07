@@ -28,6 +28,7 @@
 // Each protocol you include costs memory and, during decode, costs time
 // Disable (set to 0) all the protocols you do not need/want!
 //
+#if 0
 #define DECODE_RC5           1
 #define SEND_RC5             1
 
@@ -78,6 +79,10 @@
 
 #define DECODE_LEGO_PF       0 // NOT WRITTEN
 #define SEND_LEGO_PF         1
+#endif
+
+#define DECODE_NEC           1
+
 
 //------------------------------------------------------------------------------
 // When sending a Pronto code we request to send either the "once" code

@@ -2,8 +2,7 @@
 #include <IRremote.h>
 
 const int IRRECV_PIN   = 11; // MOSI(pin#17)
-const int MOTOR_PIN    = 9;  // IO9 (pin#15)
-const int STEERING_PIN = 4;  // IO4 (pin#6)
+const int STEERING_PIN = 10;  // IO4 (pin#6)
 
 const unsigned long IRRECV_LEFT    = 0x41B619E6;
 const unsigned long IRRECV_RIGHT   = 0x41B66996;
@@ -16,65 +15,54 @@ const unsigned long IRRECV_SLEEP60 = 0x41B6619E;
 class SteeringController
 {
 private:
-    const int STEERING_MIN    = 58;
-    const int STEERING_INIT   = 78;
-    const int STEERING_MAX    = 98;
-    const int STEERING_OFFSET = 10;
+    #define STEERING_MIN    0
+    #define STEERING_INIT   90
+    #define STEERING_MAX    180
+    #define STEERING_OFFSET 10
 
     Servo servo;
-    int   index;
+    int   angle;
 
 public:
     void attach(int pin) {
-        index = 0;
+        angle = STEERING_INIT;
         servo.attach(pin);
         servo.write(STEERING_INIT);
     }
 
-    void right() {
-        int nextIndex = index + 1;
-        int nextAngle = nextIndex * STEERING_OFFSET + STEERING_INIT;
+    void left(int offset = STEERING_OFFSET) {
+        int nextAngle = angle + offset;
+        if (nextAngle > STEERING_MAX) {
+            nextAngle = STEERING_MAX;
+        }
+        servo.write(nextAngle);
+        angle = nextAngle;
+        delay(10);
+    }
+
+    void right(int offset = STEERING_OFFSET) {
+        int nextAngle = angle - offset;
+        if (nextAngle < STEERING_MIN) {
+            nextAngle = STEERING_MIN;
+        }
+        servo.write(nextAngle);
+        angle = nextAngle;
+    }
+
+    void set(int angle) {
+        int nextAngle = angle;
         if (nextAngle > STEERING_MAX) {
             return;
         }
-        index = nextIndex;
-        servo.write(nextAngle);
-    }
-
-    void left() {
-        int nextIndex = index - 1;
-        int nextAngle = nextIndex * STEERING_OFFSET + STEERING_INIT;
         if (nextAngle < STEERING_MIN) {
             return;
         }
-        index = nextIndex;
         servo.write(nextAngle);
-    }
-};
-
-class MotorController
-{
-private:
-    int pin;
-
-public:
-    void attach(int pin) {
-        this->pin = pin;
-        pinMode(pin, OUTPUT);
-        digitalWrite(pin, LOW);
-    }
-
-    void up() {
-        digitalWrite(pin, HIGH);
-    }
-
-    void down() {
-        digitalWrite(pin, LOW);
+        angle = nextAngle;
     }
 };
 
 SteeringController steering;
-MotorController motor;
 IRrecv irrecv(IRRECV_PIN);
 
 void dump(decode_results* results)
@@ -99,26 +87,26 @@ void dump(decode_results* results)
 void setup()
 {
     Serial.begin(9600);
-    Serial.println("Starting...");
     steering.attach(STEERING_PIN);
     irrecv.enableIRIn();
-    motor.attach(MOTOR_PIN);
+    Serial.println("Booted.");
 }
 
 void loop()
 {
     decode_results results;
     if (!irrecv.decode(&results)) {
+        delay(100);
         return;
     }
+    irrecv.resume();
 
     dump(&results);
-    irrecv.resume();
     switch (results.value) {
-    case IRRECV_LEFT:  steering.left();  break;
-    case IRRECV_RIGHT: steering.right(); break;
-    case IRRECV_UP:    motor.up();       break;
-    case IRRECV_DOWN:  motor.down();     break;
+    case IRRECV_LEFT:  steering.left();    break;
+    case IRRECV_RIGHT: steering.right();   break;
+    case IRRECV_DOWN:  steering.left(30);  break;
+    case IRRECV_UP:    steering.right(30); break;
     }
-    delay(50);
+    delay(100);
 }
