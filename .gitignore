@@ -1,0 +1,12 @@
+; for emacs
+.emacs.desktop
+.emacs.desktop.lock
+
+*~
+
+; for ano
+.build_ano
+
+; for sim
+robotarmsim
+*.o
