@@ -1,6 +1,6 @@
 #include <Servo.h>
 #include <IRremote.h>
-#include "CachedServo.h"
+#include "Sg90Servo.h"
 #include "Point2.h"
 #include "Point3.h"
 #include "ActuatorController.h"
@@ -33,12 +33,12 @@ double zRing[] = { 99.5, 14.5,  -70.5, 14.5};
 int    zIndex  = 0;
 const int Z_RING_MAX = sizeof(zRing) / sizeof(zRing[0]);
 
-CachedServo lowerArmServo(LOWER_ARM_PIN,
-                          LOWER_ARM_INIT_ANGLE);
-CachedServo upperArmServo(UPPER_ARM_PIN,
-                          UPPER_ARM_INIT_ANGLE);
-CachedServo swingServo(SWING_PIN,
-                       SWING_INIT_ANGLE);
+Sg90Servo lowerArmServo(LOWER_ARM_PIN,
+                        LOWER_ARM_INIT_ANGLE);
+Sg90Servo upperArmServo(UPPER_ARM_PIN,
+                        UPPER_ARM_INIT_ANGLE);
+Sg90Servo swingServo(SWING_PIN,
+                     SWING_INIT_ANGLE);
 
 Point3 theArmRobotEndPoint(0,
                            LENGTH_OF_UPPER_ARM,
@@ -54,8 +54,8 @@ private:
     const int STEERING_MAX    = 102;
     const int STEERING_OFFSET = 12;
 
-    CachedServo servo;
-    int         index;
+    Sg90Servo servo;
+    int       index;
 
 public:
     SteeringController()
@@ -85,6 +85,14 @@ public:
         }
         index = nextIndex;
         servo.write(nextAngle);
+    }
+
+    void wait() {
+        servo.wait();
+    }
+
+    void close() {
+        servo.close();
     }
 };
 
@@ -178,6 +186,8 @@ void loop()
     case IRRECV_ENTER:   motor.toggle();           break;
     default: return;
     }
+    steering.wait();
+    steering.close();
 
     if (Y_RING_MAX <= yIndex) yIndex = 0;
     if (yIndex < 0)           yIndex = Y_RING_MAX - 1;
@@ -221,4 +231,9 @@ void loop()
     upperArmServo.write(upperArmAngle);
     swingServo.write(swingAngle);
     theArmRobotEndPoint = endpoint;
+
+    swingServo.wait();
+    lowerArmServo.close();
+    upperArmServo.close();
+    swingServo.close();
 }
