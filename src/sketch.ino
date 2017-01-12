@@ -63,7 +63,11 @@ private:
         // If do not, the servo vibrate slightly.
         servo.attach(pin);
         servo.write(angle);
-        delay(100);
+        // Case delay(160)
+        //   If do noting while 10sec, can not actuate onetime.
+        // Case delay(170)
+        //   If do noting while 10sec, can not actuate onetime.
+        delay(200);
         servo.detach();
     }
 };
@@ -98,7 +102,7 @@ void setup()
     steering.initialize();
 }
 
-void loop()
+void ircontrol()
 {
     decode_results results;
     if (!irrecv.decode(&results)) {
@@ -113,4 +117,26 @@ void loop()
     case IRRECV_DOWN:  steering.left(30);  break;
     case IRRECV_UP:    steering.right(30); break;
     }
+}
+
+void uartcontrol()
+{
+    int ch = Serial.read();
+    if (ch == -1) {
+        return;
+    }
+
+    Serial.write(ch);
+    switch (ch) {
+    case 'l': steering.left();    break;
+    case 'r': steering.right();   break;
+    case 'L': steering.left(30);  break;
+    case 'R': steering.right(30); break;
+    }
+}
+
+void loop()
+{
+    ircontrol();
+    uartcontrol();
 }
