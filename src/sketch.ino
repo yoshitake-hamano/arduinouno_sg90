@@ -1,8 +1,9 @@
 #include <Servo.h>
 #include <IRremote.h>
+#include "Sg90Servo.h"
 
 const int IRRECV_PIN   = 11; // MOSI(pin#17)
-const int STEERING_PIN = 4;  // IO4 (pin#6)
+const int STEERING_PIN = 8;  // IO8 (pin#14)
 
 const unsigned long IRRECV_LEFT    = 0x41B619E6;
 const unsigned long IRRECV_RIGHT   = 0x41B66996;
@@ -20,17 +21,15 @@ private:
     #define STEERING_MAX    180
     #define STEERING_OFFSET 10
 
-    Servo servo;
-    int   pin;
+    Sg90Servo servo;
     int   angle;
 
 public:
-    SteeringController() : pin(STEERING_PIN), angle(STEERING_INIT) {
+    SteeringController() : angle(STEERING_INIT), servo(STEERING_PIN, STEERING_INIT) {
     }
 
     void initialize() {
-        angle = STEERING_INIT;
-        set(angle, false);
+        servo.initialize();
     }
 
     void left(int offset = STEERING_OFFSET) {
@@ -57,18 +56,9 @@ private:
             return;
         }
 
-        // Incase of using IRrecv.
-        //
-        // Attach and detach everytime.
-        // If do not, the servo vibrate slightly.
-        servo.attach(pin);
         servo.write(angle);
-        // Case delay(160)
-        //   If do noting while 10sec, can not actuate onetime.
-        // Case delay(170)
-        //   If do noting while 10sec, can not actuate onetime.
-        delay(200);
-        servo.detach();
+        servo.wait();
+        servo.close();
     }
 };
 
