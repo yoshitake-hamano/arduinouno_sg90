@@ -173,7 +173,9 @@ void loop()
     if (!irrecv.decode(&results)) {
         return;
     }
+#if 0
     dump(&results);
+#endif
     irrecv.resume();
 
     switch (results.value) {
@@ -186,8 +188,6 @@ void loop()
     case IRRECV_ENTER:   motor.toggle();           break;
     default: return;
     }
-    steering.wait();
-    steering.close();
 
     if (Y_RING_MAX <= yIndex) yIndex = 0;
     if (yIndex < 0)           yIndex = Y_RING_MAX - 1;
@@ -208,6 +208,8 @@ void loop()
                                               &lowerArmAngle,
                                               &upperArmAngle,
                                               &dummy)) {
+        steering.wait();
+        steering.close();
         Serial.println("Can not reach this point.");
         return;
     }
@@ -233,6 +235,7 @@ void loop()
     theArmRobotEndPoint = endpoint;
 
     swingServo.wait();
+    steering.close();
     lowerArmServo.close();
     upperArmServo.close();
     swingServo.close();
